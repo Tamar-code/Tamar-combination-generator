@@ -1,0 +1,52 @@
+<nav class="pagination" dir="rtl" aria-label="ניווט בדפים">
+  <button 
+    (click)="goFirst()" 
+    [disabled]="currentPage() === 1"
+    aria-label="עבור לדף הראשון">
+    ⏮ ראשון
+  </button>
+  <button 
+    (click)="goPrev()" 
+    [disabled]="currentPage() === 1"
+    aria-label="עבור לדף הקודם">
+    ◀ הקודם
+  </button>
+  
+  <span class="page-info" aria-live="polite">
+    עמוד {{ currentPage() }} מתוך {{ totalPages() }}
+  </span>
+  
+  <button 
+    (click)="goNext()" 
+    [disabled]="currentPage() === totalPages()"
+    aria-label="עבור לדף הבא">
+    הבא ▶
+  </button>
+  <button 
+    (click)="goLast()" 
+    [disabled]="currentPage() === totalPages()"
+    aria-label="עבור לדף האחרון">
+    אחרון ⏭
+  </button>
+  
+  <div class="jump">
+    <label for="jumpInput" class="visually-hidden">עבור לדף מספר</label>
+    <input 
+      id="jumpInput"
+      type="number" 
+      [ngModel]="jumpToPage()" 
+      (ngModelChange)="jumpToPage.set($event)" 
+      min="1" 
+      [max]="totalPages()"
+      aria-describedby="jumpHelp" />
+    <button 
+      (click)="goToPage()" 
+      [disabled]="!isValidPage()"
+      aria-label="עבור לדף שהוזן">
+      עבור
+    </button>
+    @if (!isValidPage()) {
+      <span id="jumpHelp" class="error" role="alert">מספר דף לא תקין (1-{{ totalPages() }})</span>
+    }
+  </div>
+</nav>

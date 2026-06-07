@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="CombinationGeneratorAPI.Api/CombinationGeneratorAPI.Api.csproj" />
+  <Project Path="CombinationGeneratorAPI.Application/CombinationGeneratorAPI.Application.csproj" />
+  <Project Path="CombinationGeneratorAPI.Domain/CombinationGeneratorAPI.Domain.csproj" />
+  <Project Path="CombinationGeneratorAPI.Infrastructure/CombinationGeneratorAPI.Infrastructure.csproj" />
+</Solution>

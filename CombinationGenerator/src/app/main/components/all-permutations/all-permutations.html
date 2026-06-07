@@ -1,0 +1,47 @@
+<div class="all-container" dir="rtl">
+  <div class="header">
+    <button 
+      class="back-btn" 
+      (click)="onBack()"
+      aria-label="חזור למסך הניווט">
+      ← חזור
+    </button>
+    <h2>כל הקומבינציות</h2>
+  </div>
+  
+  @if (permService.loading()) {
+    <div class="loading" role="status" aria-live="polite">
+      <span>טוען קומבינציות...</span>
+    </div>
+  }
+  
+  @if (permService.errorMsg()) {
+    <p class="error" role="alert" aria-live="assertive">{{ permService.errorMsg() }}</p>
+  }
+  
+  @if (!permService.loading() && permutations().length === 0) {
+    <div class="empty-state">
+      <p>כל הקומבינציות האפשריות כבר הוצגו!</p>
+    </div>
+  }
+  
+  @if (!permService.loading() && permutations().length > 0) {
+    <div class="permutations-list" role="list" aria-label="רשימת קומבינציות">
+      @for (perm of permutations(); track perm.index) {
+        <div class="perm-row" role="listitem">
+          <span class="perm-index">{{ perm.index }}</span>
+          <div class="perm-values">
+            @for (num of perm.values; track $index) {
+              <span class="box">{{ num }}</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+    
+    <app-pagination
+      [currentPage]="currentPage()"
+      [totalPages]="totalPages()"
+      (pageChange)="onPageChange($event)" />
+  }
+</div>

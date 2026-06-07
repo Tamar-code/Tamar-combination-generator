@@ -1,0 +1,20 @@
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Angular
+CombinationGenerator/node_modules/
+CombinationGenerator/dist/
+CombinationGenerator/.angular/
+
+# .NET
+CombinationGeneratorAPI/**/bin/
+CombinationGeneratorAPI/**/obj/
+*.user
+*.suo
