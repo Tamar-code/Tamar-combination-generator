@@ -1,2 +1,2 @@
 namespace CombinationGeneratorAPI.Application.DTOs;
-public record StartResponse(string TotalCount);
+public record StartResponse(string TotalCount, string SessionId);

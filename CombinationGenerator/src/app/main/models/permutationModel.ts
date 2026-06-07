@@ -1,15 +1,16 @@
 export interface StartResponse {
   totalCount: string;
+  sessionId: string;
 }
 
 export interface NextResponse {
-  index: number;
+  index: string;
   permutation: number[];
   hasMore: boolean;
 }
 
 export interface PermutationItem {
-  index: number;
+  index: string;
   permutation: number[];
 }
 

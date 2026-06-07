@@ -37,7 +37,7 @@ public class CombinationService : ICombinationService
         return result;
     }
 
-    public (int[] permutation, bool hasMore) GetNext(int n, int currentIndex)
+    public (int[] permutation, bool hasMore) GetNext(int n, long currentIndex)
     {
         long total = GetTotalCount(n);
         if (currentIndex >= total)
@@ -48,16 +48,16 @@ public class CombinationService : ICombinationService
         return (permutation, hasMore);
     }
 
-    public IEnumerable<(int[] permutation, int index)> GetPage(int n, int fromIndex, int pageSize)
+    public IEnumerable<(int[] permutation, long index)> GetPage(int n, long fromIndex, int pageSize)
     {
         long total = GetTotalCount(n);
-        var result = new List<(int[], int)>();
+        var result = new List<(int[], long)>();
 
         for (int i = 0; i < pageSize; i++)
         {
             long idx = fromIndex + i;
             if (idx >= total) break;
-            result.Add((ComputePermutationAtIndex(n, idx), (int)idx + 1));
+            result.Add((ComputePermutationAtIndex(n, idx), idx + 1));
         }
 
         return result;

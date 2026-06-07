@@ -10,9 +10,10 @@ export class PermutationService {
 
   public inputNumber = signal<number>(1);
   public totalCount = signal<string>('0');
-  public currentIndex = signal<number>(0);
+  public sessionId = signal<string>('');
+  public currentIndex = signal<string>('0');
   public currentPermutation = signal<number[]>([]);
-  public allPermutationsCurrentIndex = signal<number>(0);
+  public allPermutationsCurrentIndex = signal<string>('0');
   public hasMore = signal<boolean>(true);
   public loading = signal<boolean>(false);
   public errorMsg = signal<string>('');
@@ -42,8 +43,10 @@ export class PermutationService {
     this.http.post<StartResponse>(`${this.url}/start`, { n: this.inputNumber() }).subscribe({
       next: (res: StartResponse) => {
         this.totalCount.set(res.totalCount);
-        this.currentIndex.set(0);
+        this.sessionId.set(res.sessionId);
+        this.currentIndex.set('0');
         this.currentPermutation.set([]);
+        this.allPermutationsCurrentIndex.set('0');
         this.hasMore.set(true);
         this.loading.set(false);
         onSuccess?.();
@@ -58,7 +61,9 @@ export class PermutationService {
   getNext(): void {
     this.loading.set(true);
     this.errorMsg.set('');
-    this.http.get<NextResponse>(`${this.url}/next`).subscribe({
+    this.http.get<NextResponse>(`${this.url}/next`, {
+      params: { sessionId: this.sessionId() },
+    }).subscribe({
       next: (res: NextResponse) => {
         this.currentIndex.set(res.index);
         this.currentPermutation.set(res.permutation);
@@ -76,7 +81,12 @@ export class PermutationService {
     this.loading.set(true);
     this.errorMsg.set('');
     this.http.get<GetAllResponse>(`${this.url}/all`, {
-      params: { page: pageNumber, pageSize: pageSize, fromIndex: this.allPermutationsCurrentIndex() },
+      params: {
+        page: pageNumber,
+        pageSize: pageSize,
+        fromIndex: this.allPermutationsCurrentIndex(),
+        sessionId: this.sessionId(),
+      },
     }).subscribe({
       next: (res: GetAllResponse) => {
         this.loading.set(false);
@@ -91,8 +101,10 @@ export class PermutationService {
 
   reset(): void {
     this.totalCount.set('0');
-    this.currentIndex.set(0);
+    this.sessionId.set('');
+    this.currentIndex.set('0');
     this.currentPermutation.set([]);
+    this.allPermutationsCurrentIndex.set('0');
     this.hasMore.set(true);
     this.errorMsg.set('');
     this.inputNumber.set(1);

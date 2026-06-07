@@ -15,11 +15,11 @@ export class AllPermutationsComponent implements OnInit {
   readonly permService = inject(PermutationService);
   private readonly router = inject(Router);
 
-  permutations = signal<{ index: number; values: number[] }[]>([]);
+  permutations = signal<{ index: string; values: number[] }[]>([]);
   totalPages = signal<number>(0);
   currentPage = signal<number>(1);
   readonly pageSize = 10;
-  private readonly startFromIndex = signal<number>(0);
+  private readonly startFromIndex = signal<string>('0');
 
   ngOnInit(): void {
     this.startFromIndex.set(this.permService.currentIndex());
@@ -29,8 +29,9 @@ export class AllPermutationsComponent implements OnInit {
 
   loadPage(page: number): void {
     this.currentPage.set(page);
-    const fromIndex = this.startFromIndex() + (page - 1) * this.pageSize;
-    this.permService.allPermutationsCurrentIndex.set(fromIndex);
+    const startIndex = BigInt(this.startFromIndex());
+    const fromIndex = startIndex + BigInt(page - 1) * BigInt(this.pageSize);
+    this.permService.allPermutationsCurrentIndex.set(fromIndex.toString());
     
     this.permService.getAll(page, this.pageSize, (res: GetAllResponse) => {
       this.permutations.set(
@@ -45,11 +46,8 @@ export class AllPermutationsComponent implements OnInit {
   }
 
   onBack(): void {
-    const lastShown = this.permutations()[this.permutations().length - 1];
-    if (lastShown) {
-      this.permService.currentIndex.set(lastShown.index);
-      this.permService.currentPermutation.set(lastShown.values);
-    }
+    // Preserve the last visible permutation from before entering "all permutations".
+    // The service already holds the current index and permutation state.
     this.router.navigate(['/navigate']);
   }
 }

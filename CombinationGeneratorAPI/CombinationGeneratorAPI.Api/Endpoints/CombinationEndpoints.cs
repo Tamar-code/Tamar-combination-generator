@@ -6,6 +6,10 @@ namespace CombinationGeneratorAPI.Api.Endpoints;
 
 public static class CombinationEndpoints
 {
+    private record SessionState(int N, long CurrentIndex);
+
+    private static string GetCacheKey(string sessionId) => $"session_{sessionId}";
+
     public static void MapCombinationEndpoints(this WebApplication app)
     {
         // POST /api/start
@@ -15,45 +19,49 @@ public static class CombinationEndpoints
                 return Results.BadRequest("N must be between 1 and 20.");
 
             long total = service.GetTotalCount(request.N);
-            cache.Set("current_n", request.N, TimeSpan.FromHours(1));
-            cache.Set("current_index", 0L, TimeSpan.FromHours(1));
+            var sessionId = Guid.NewGuid().ToString("N");
+            cache.Set(GetCacheKey(sessionId), new SessionState(request.N, 0L), TimeSpan.FromHours(1));
 
-            return Results.Ok(new StartResponse(total.ToString()));
+            return Results.Ok(new StartResponse(total.ToString(), sessionId));
         })
         .WithName("Start")
         .WithOpenApi();
 
         // GET /api/next
-        app.MapGet("/api/next", (ICombinationService service, IMemoryCache cache) =>
+        app.MapGet("/api/next", (string sessionId, ICombinationService service, IMemoryCache cache) =>
         {
-            if (!cache.TryGetValue("current_n", out int n))
+            if (string.IsNullOrWhiteSpace(sessionId))
+                return Results.BadRequest("Missing sessionId.");
+
+            if (!cache.TryGetValue(GetCacheKey(sessionId), out SessionState? state) || state is null)
                 return Results.BadRequest("Please call /api/start first.");
 
-            cache.TryGetValue("current_index", out long currentIndex);
-            long total = service.GetTotalCount(n);
-
-            if (currentIndex >= total)
+            long total = service.GetTotalCount(state.N);
+            if (state.CurrentIndex >= total)
                 return Results.Ok(new { message = "אין יותר קומבינציות", hasMore = false });
 
-            var (permutation, hasMore) = service.GetNext(n, (int)currentIndex);
-            cache.Set("current_index", currentIndex + 1, TimeSpan.FromHours(1));
+            var (permutation, hasMore) = service.GetNext(state.N, state.CurrentIndex);
+            cache.Set(GetCacheKey(sessionId), state with { CurrentIndex = state.CurrentIndex + 1 }, TimeSpan.FromHours(1));
 
-            return Results.Ok(new NextResponse(permutation, (int)currentIndex + 1, hasMore));
+            return Results.Ok(new NextResponse(permutation, (state.CurrentIndex + 1).ToString(), hasMore));
         })
         .WithName("GetNext")
         .WithOpenApi();
 
         // GET /api/all
-        app.MapGet("/api/all", (int page, int pageSize, int fromIndex, ICombinationService service, IMemoryCache cache) =>
+        app.MapGet("/api/all", (int page, int pageSize, long fromIndex, string sessionId, ICombinationService service, IMemoryCache cache) =>
         {
-            if (!cache.TryGetValue("current_n", out int n))
+            if (string.IsNullOrWhiteSpace(sessionId))
+                return Results.BadRequest("Missing sessionId.");
+
+            if (!cache.TryGetValue(GetCacheKey(sessionId), out SessionState? state) || state is null)
                 return Results.BadRequest("Please call /api/start first.");
 
-            long total = service.GetTotalCount(n);
+            long total = service.GetTotalCount(state.N);
             int totalPages = (int)Math.Ceiling((double)total / pageSize);
 
-            var items = service.GetPage(n, fromIndex, pageSize)
-                .Select(x => new PermutationItem(x.permutation, x.index))
+            var items = service.GetPage(state.N, fromIndex, pageSize)
+                .Select(x => new PermutationItem(x.permutation, x.index.ToString()))
                 .ToList();
 
             bool hasMore = fromIndex + pageSize < total;
