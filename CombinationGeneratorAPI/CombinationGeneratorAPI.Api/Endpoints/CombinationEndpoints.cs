@@ -54,12 +54,6 @@ public static class CombinationEndpoints
             if (string.IsNullOrWhiteSpace(sessionId))
                 return Results.BadRequest("Missing sessionId.");
 
-            if (pageSize <= 0)
-                return Results.BadRequest("pageSize must be greater than 0.");
-
-            if (fromIndex < 0)
-                return Results.BadRequest("fromIndex must be non-negative.");
-
             if (!cache.TryGetValue(GetCacheKey(sessionId), out SessionState? state) || state is null)
                 return Results.BadRequest("Please call /api/start first.");
 
