@@ -54,11 +54,17 @@ public static class CombinationEndpoints
             if (string.IsNullOrWhiteSpace(sessionId))
                 return Results.BadRequest("Missing sessionId.");
 
+            if (pageSize <= 0)
+                return Results.BadRequest("pageSize must be greater than 0.");
+
+            if (fromIndex < 0)
+                return Results.BadRequest("fromIndex must be non-negative.");
+
             if (!cache.TryGetValue(GetCacheKey(sessionId), out SessionState? state) || state is null)
                 return Results.BadRequest("Please call /api/start first.");
 
             long total = service.GetTotalCount(state.N);
-            int totalPages = (int)Math.Ceiling((double)total / pageSize);
+            long totalPages = (long)Math.Ceiling((double)total / pageSize);
 
             var items = service.GetPage(state.N, fromIndex, pageSize)
                 .Select(x => new PermutationItem(x.permutation, x.index.ToString()))

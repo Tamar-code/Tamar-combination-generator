@@ -77,6 +77,28 @@ export class PermutationService {
     });
   }
 
+  loadCurrentPermutation(): void {
+    const currentIndexNum = parseInt(this.currentIndex(), 10);
+    if (currentIndexNum > 0) {
+      this.loading.set(true);
+      this.errorMsg.set('');
+      // Use the internal API or compute the permutation at the current index
+      // This ensures state is restored when navigating back from results
+      this.http.get<NextResponse>(`${this.url}/next`, {
+        params: { sessionId: this.sessionId() },
+      }).subscribe({
+        next: (res: NextResponse) => {
+          this.currentPermutation.set(res.permutation);
+          this.loading.set(false);
+        },
+        error: (err: HttpErrorResponse) => {
+          this.errorMsg.set(this.handleHttpError(err, 'שגיאה בטעינת הקומבינציה'));
+          this.loading.set(false);
+        },
+      });
+    }
+  }
+
   getAll(pageNumber: number, pageSize = 10, onSuccess?: (res: GetAllResponse) => void): void {
     this.loading.set(true);
     this.errorMsg.set('');
